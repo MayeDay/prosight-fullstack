@@ -1,14 +1,14 @@
 version: 1.0
-runtime: DOTNET_8
+runtime: NODEJS_22
 build:
   commands:
     build:
-      - cd ProSight.API && dotnet publish -c Release -o /app/publish
+      - cd prosight-server && npm install && npx prisma generate
 run:
-  command: dotnet /app/publish/ProSight.API.dll
+  command: sh -c "cd prosight-server && npx prisma db push --accept-data-loss && node server.js"
   network:
     port: 8080
     env: PORT
   env:
-    - name: ASPNETCORE_URLS
-      value: "http://+:8080"
+    - name: NODE_ENV
+      value: "production"

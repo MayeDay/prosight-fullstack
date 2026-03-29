@@ -1,0 +1,97 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String
+  location     String?
+  profession   String?
+  bio          String?
+  hourlyRate   Decimal? @db.Decimal(10, 2)
+  createdAt    DateTime @default(now())
+
+  credentials        ProCredential[]
+  ownedProjects      Project[]       @relation("Owner")
+  overseeingProjects Project[]       @relation("Pro")
+  messages           Message[]
+  applications       Application[]
+  reviewsReceived    Review[]        @relation("Reviewee")
+  reviewsGiven       Review[]        @relation("Reviewer")
+}
+
+model ProCredential {
+  id            Int     @id @default(autoincrement())
+  userId        Int
+  trade         String
+  licenseType   String
+  licenseNumber String
+  issuingState  String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Project {
+  id                    Int      @id @default(autoincrement())
+  title                 String
+  category              String
+  description           String   @db.Text
+  budget                Decimal  @db.Decimal(10, 2)
+  status                String   @default("open")
+  ownerApprovedComplete Boolean  @default(false)
+  proApprovedComplete   Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  ownerId               Int
+  proId                 Int?
+
+  owner        User          @relation("Owner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  pro          User?         @relation("Pro", fields: [proId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  messages     Message[]
+  applications Application[]
+  reviews      Review[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  text      String   @db.Text
+  sentAt    DateTime @default(now())
+  projectId Int
+  senderId  Int
+
+  project Project @relation(fields: [projectId], references: [id])
+  sender  User    @relation(fields: [senderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Application {
+  id        Int      @id @default(autoincrement())
+  status    String   @default("pending")
+  appliedAt DateTime @default(now())
+  projectId Int
+  proId     Int
+
+  project Project @relation(fields: [projectId], references: [id])
+  pro     User    @relation(fields: [proId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  rating     Int
+  comment    String   @db.Text
+  createdAt  DateTime @default(now())
+  projectId  Int
+  reviewerId Int
+  revieweeId Int
+
+  project  Project @relation(fields: [projectId], references: [id])
+  reviewer User    @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reviewee User    @relation("Reviewee", fields: [revieweeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}

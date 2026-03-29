@@ -6,23 +6,18 @@ RUN npm ci --silent
 COPY prosight-client/ ./
 RUN npm run build
 
-# ── Stage 2: Build .NET API ───────────────────────────────────────────────
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS dotnet-build
-WORKDIR /src
-COPY ProSight.API/ ./
-RUN dotnet publish -c Release -o /publish
-
-# ── Stage 3: Runtime image ────────────────────────────────────────────────
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
+# ── Stage 2: Node.js API ──────────────────────────────────────────────────
+FROM node:20-alpine
 WORKDIR /app
+COPY prosight-server/package*.json ./
+RUN npm ci --production
+COPY prosight-server/ ./
+RUN npx prisma generate
 
-# Copy API
-COPY --from=dotnet-build /publish ./
-
-# Copy React build into wwwroot so .NET serves it
-COPY --from=react-build /react/build ./wwwroot
+# Copy React build into public folder so Express serves it
+COPY --from=react-build /react/build ./public
 
 EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
-
-ENTRYPOINT ["dotnet", "ProSight.API.dll"]
+ENV PORT=8080
+ENV NODE_ENV=production
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node server.js"]
