@@ -1,0 +1,21 @@
+# docker-compose.yml
+# Spins up a local SQL Server instance for development.
+# Run: docker-compose up -d
+
+version: "3.9"
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: prosight-sqlserver
+    environment:
+      SA_PASSWORD: "ProSight_Local123!"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+volumes:
+  sqlserver_data:
