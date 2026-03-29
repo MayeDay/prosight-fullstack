@@ -2,7 +2,9 @@
 // Central API client. All backend calls go through here.
 // Automatically attaches the JWT token from localStorage.
 
-const BASE_URL = "http://localhost:5000/api";
+// In production .NET serves React, so /api is relative to the same host.
+// In development the CRA proxy (package.json "proxy") forwards /api → localhost:5000.
+const BASE_URL = "/api";
 
 async function request(path, options = {}) {
   const token = localStorage.getItem("prosight_token");

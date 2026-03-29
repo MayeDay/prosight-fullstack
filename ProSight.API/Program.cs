@@ -10,10 +10,13 @@ using ProSight.API.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Database ───────────────────────────────────────────────────────────────
+// Connection string can be overridden via env var:
+//   ConnectionStrings__DefaultConnection="Server=<RDS_HOST>..."
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // ── JWT Auth ───────────────────────────────────────────────────────────────
+// Override via env vars: Jwt__Secret, Jwt__Issuer, Jwt__Audience
 var jwtSecret = builder.Configuration["Jwt:Secret"]!;
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -36,11 +39,16 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddControllers();
 
-// ── CORS — allow React dev server ─────────────────────────────────────────
+// ── CORS ───────────────────────────────────────────────────────────────────
+// In production .NET serves React so CORS is not needed, but we keep it for
+// local dev. Override via env var AllowedOrigins (comma-separated).
+var allowedOrigins = (builder.Configuration["AllowedOrigins"] ?? "http://localhost:3000")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactApp", policy =>
-        policy.WithOrigins("http://localhost:3000")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
@@ -80,15 +88,19 @@ using (var scope = app.Services.CreateScope())
     DatabaseSeeder.Seed(db);
 }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
+
+// Serve React build (wwwroot/index.html + static assets)
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 app.UseCors("ReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+// Fall back to index.html so React Router handles client-side routes
+app.MapFallbackToFile("index.html");
 
 app.Run();
