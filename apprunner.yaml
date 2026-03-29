@@ -1,0 +1,14 @@
+version: 1.0
+runtime: DOTNET_8
+build:
+  commands:
+    build:
+      - cd ProSight.API && dotnet publish -c Release -o /app/publish
+run:
+  command: dotnet /app/publish/ProSight.API.dll
+  network:
+    port: 8080
+    env: PORT
+  env:
+    - name: ASPNETCORE_URLS
+      value: "http://+:8080"
