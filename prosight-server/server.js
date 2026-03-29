@@ -21,6 +21,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 async function start() {
+  const { execSync } = require('child_process');
+  try {
+    execSync('npx prisma db push --accept-data-loss', { stdio: 'inherit', cwd: __dirname });
+  } catch (err) {
+    console.error('Prisma db push failed:', err.message);
+  }
+
   const { seed } = require('./seed');
   await seed(prisma);
   app.listen(PORT, () => console.log(`ProSight API running on port ${PORT}`));

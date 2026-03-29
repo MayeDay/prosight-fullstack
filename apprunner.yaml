@@ -5,18 +5,19 @@ build:
     build:
       - cd prosight-server && npm install && npx prisma generate
 run:
-  command: sh -c "cd prosight-server && npx prisma db push --accept-data-loss && node server.js"
+  runtime-version: 18.x.x
+  command: node prosight-server/server.js
   network:
     port: 8080
     env: PORT
   env:
     - name: NODE_ENV
-      value: "production"
+      value: production
     - name: JWT_SECRET
-      value: "prosight-super-secret-key-change-this-in-production-min-32-chars"
+      value: prosight-super-secret-key-change-this-in-production-min-32-chars
     - name: JWT_ISSUER
-      value: "ProSightAPI"
+      value: ProSightAPI
     - name: JWT_AUDIENCE
-      value: "ProSightClient"
+      value: ProSightClient
     - name: DATABASE_URL
-      value: "sqlserver://YOUR_RDS_ENDPOINT:1433;database=ProSightDb;user=sa;password=YOUR_PASSWORD;trustServerCertificate=true"
+      value: sqlserver://YOUR_RDS_ENDPOINT:1433;database=ProSightDb;user=sa;password=YOUR_PASSWORD;trustServerCertificate=true
