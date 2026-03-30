@@ -3,13 +3,15 @@ runtime: nodejs22
 build:
   commands:
     build:
+      - cd prosight-client && npm install && npm run build
+      - cp -r prosight-client/build prosight-server/public
       - cd prosight-server && npm install && npx prisma generate && npx prisma db push --accept-data-loss
   env:
     - name: DATABASE_URL
       value: 'postgresql://neondb_owner:npg_hf5WRqDona1S@ep-empty-feather-ams6t7mu-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require'
 run:
   runtime-version: 22
-  command: node prosight-server/server.js
+  command: sh -c "cd prosight-server && npx prisma db push --accept-data-loss && node server.js"
   network:
     port: 8080
     env: PORT
