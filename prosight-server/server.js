@@ -1,17 +1,29 @@
 console.log('Starting ProSight server...');
 console.log('NODE_ENV:', process.env.NODE_ENV);
 console.log('DATABASE_URL set:', !!process.env.DATABASE_URL);
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const prisma = require('./db');
 
-const app = express();
+const express = require('express');
+const cors    = require('cors');
+const path    = require('path');
+const fs      = require('fs');
+const { exec } = require('child_process');
+const prisma  = require('./db');
+const { DATABASE_URL } = require('./config');
+
+const app  = express();
 const PORT = process.env.PORT || 8080;
 
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000').split(',');
-app.use(cors({ origin: allowedOrigins }));
+// ── DB readiness gate ─────────────────────────────────────────────────────
+let dbReady = false;
+
+app.use(cors({ origin: '*' }));
 app.use(express.json());
+
+// Return 503 for API calls until schema is pushed and DB is ready
+app.use('/api', (req, res, next) => {
+  if (!dbReady) return res.status(503).json({ message: 'Server starting up, please retry in a few seconds.' });
+  next();
+});
 
 app.use('/api/auth',     require('./routes/auth'));
 app.use('/api/users',    require('./routes/users'));
@@ -19,33 +31,39 @@ app.use('/api/projects', require('./routes/projects'));
 app.use('/api/projects', require('./routes/messages'));
 app.use('/api/reviews',  require('./routes/reviews'));
 
-// Serve React build (only if built — skipped in pure-API dev mode)
+// ── Serve React build ────────────────────────────────────────────────────
 const publicDir = path.join(__dirname, 'public');
-const fs = require('fs');
 if (fs.existsSync(publicDir)) {
   app.use(express.static(publicDir));
   app.get('*', (req, res) => res.sendFile(path.join(publicDir, 'index.html')));
 } else {
-  app.get('/', (req, res) => res.json({ status: 'ProSight API running', note: 'React build not found' }));
+  app.get('/', (req, res) => res.json({ status: 'ProSight API running' }));
 }
 
-// Start listening immediately so App Runner health check passes,
-// then push schema + seed in the background.
+// ── Start server, then init DB ────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`ProSight API running on port ${PORT}`);
 
-  const { exec } = require('child_process');
-  const dbUrl = process.env.DATABASE_URL ||
-    'postgresql://neondb_owner:npg_hf5WRqDona1S@ep-empty-feather-ams6t7mu-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
-  exec('node_modules/.bin/prisma db push --accept-data-loss',
-    { cwd: __dirname, env: { ...process.env, DATABASE_URL: dbUrl } },
-    (err) => {
-    if (err) {
-      console.error('DB push failed:', err.message);
-      return;
+  // Push schema using the embedded URL so it always has access
+  exec(
+    'node_modules/.bin/prisma db push --accept-data-loss',
+    { cwd: __dirname, env: { ...process.env, DATABASE_URL } },
+    async (err) => {
+      if (err) {
+        console.error('DB push failed:', err.message);
+        // Still mark ready so the server doesn't stay blocked forever
+        dbReady = true;
+        return;
+      }
+      console.log('DB schema synced');
+      try {
+        const { seed } = require('./seed');
+        await seed(prisma);
+      } catch (e) {
+        console.error('Seed skipped:', e.message);
+      }
+      dbReady = true;
+      console.log('DB ready — accepting API requests');
     }
-    console.log('DB schema synced');
-    const { seed } = require('./seed');
-    seed(prisma).catch(e => console.error('Seed skipped:', e.message));
-  });
+  );
 });
