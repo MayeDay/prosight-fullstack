@@ -21,19 +21,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 async function start() {
-  const { execFileSync } = require('child_process');
   try {
-    execFileSync(
-      process.execPath,
-      ['node_modules/.bin/prisma', 'db', 'push', '--accept-data-loss'],
-      { stdio: 'inherit', cwd: __dirname }
-    );
+    const { seed } = require('./seed');
+    await seed(prisma);
   } catch (err) {
-    console.error('Prisma db push failed:', err.message);
+    console.error('Seed skipped:', err.message);
   }
-
-  const { seed } = require('./seed');
-  await seed(prisma);
   app.listen(PORT, () => console.log(`ProSight API running on port ${PORT}`));
 }
 

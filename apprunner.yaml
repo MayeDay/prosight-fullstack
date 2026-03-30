@@ -3,7 +3,7 @@ runtime: nodejs22
 build:
   commands:
     build:
-      - cd prosight-server && npm install && npx prisma generate
+      - cd prosight-server && npm install && npx prisma generate && npx prisma db push --accept-data-loss
 run:
   runtime-version: 22
   command: node prosight-server/server.js
