@@ -19,9 +19,15 @@ app.use('/api/projects', require('./routes/projects'));
 app.use('/api/projects', require('./routes/messages'));
 app.use('/api/reviews',  require('./routes/reviews'));
 
-// Serve React build
-app.use(express.static(path.join(__dirname, 'public')));
-app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+// Serve React build (only if built — skipped in pure-API dev mode)
+const publicDir = path.join(__dirname, 'public');
+const fs = require('fs');
+if (fs.existsSync(publicDir)) {
+  app.use(express.static(publicDir));
+  app.get('*', (req, res) => res.sendFile(path.join(publicDir, 'index.html')));
+} else {
+  app.get('/', (req, res) => res.json({ status: 'ProSight API running', note: 'React build not found' }));
+}
 
 async function start() {
   try {
