@@ -29,14 +29,10 @@ if (fs.existsSync(publicDir)) {
   app.get('/', (req, res) => res.json({ status: 'ProSight API running', note: 'React build not found' }));
 }
 
-async function start() {
-  try {
-    const { seed } = require('./seed');
-    await seed(prisma);
-  } catch (err) {
-    console.error('Seed skipped:', err.message);
-  }
-  app.listen(PORT, () => console.log(`ProSight API running on port ${PORT}`));
-}
-
-start().catch(err => { console.error(err); process.exit(1); });
+// Start listening immediately so App Runner health check passes,
+// then seed the database in the background.
+app.listen(PORT, () => {
+  console.log(`ProSight API running on port ${PORT}`);
+  const { seed } = require('./seed');
+  seed(prisma).catch(err => console.error('Seed skipped:', err.message));
+});
