@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../db');
 const auth = require('../middleware/auth');
 const { userSummary } = require('../helpers');
+const { JWT_SECRET, JWT_ISSUER, JWT_AUDIENCE } = require('../config');
 
 const credentialResponse = c => ({
   id: c.id, trade: c.trade, licenseType: c.licenseType,
@@ -142,8 +143,8 @@ router.put('/me', auth, async (req, res) => {
 
     const token = jwt.sign(
       { sub: String(updated.id), name: updated.name, email: updated.email, role: updated.role },
-      process.env.JWT_SECRET,
-      { issuer: process.env.JWT_ISSUER, audience: process.env.JWT_AUDIENCE, expiresIn: '7d' }
+      JWT_SECRET,
+      { issuer: JWT_ISSUER, audience: JWT_AUDIENCE, expiresIn: '7d' }
     );
 
     res.json({

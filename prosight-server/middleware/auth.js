@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { JWT_SECRET, JWT_ISSUER, JWT_AUDIENCE } = require('../config');
 
 module.exports = function auth(req, res, next) {
   const header = req.headers.authorization;
@@ -7,9 +8,9 @@ module.exports = function auth(req, res, next) {
 
   const token = header.slice(7);
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET, {
-      issuer: process.env.JWT_ISSUER,
-      audience: process.env.JWT_AUDIENCE
+    const payload = jwt.verify(token, JWT_SECRET, {
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE
     });
     req.userId = parseInt(payload.sub);
     req.userRole = payload.role;

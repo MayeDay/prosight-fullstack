@@ -2,12 +2,13 @@ const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const prisma = require('../db');
+const { JWT_SECRET, JWT_ISSUER, JWT_AUDIENCE } = require('../config');
 
 function createToken(user) {
   return jwt.sign(
     { sub: String(user.id), name: user.name, email: user.email, role: user.role },
-    process.env.JWT_SECRET,
-    { issuer: process.env.JWT_ISSUER, audience: process.env.JWT_AUDIENCE, expiresIn: '7d' }
+    JWT_SECRET,
+    { issuer: JWT_ISSUER, audience: JWT_AUDIENCE, expiresIn: '7d' }
   );
 }
 
