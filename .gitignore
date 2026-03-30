@@ -13,6 +13,8 @@ prosight-client/node_modules/
 prosight-client/build/
 prosight-client/.env.local
 prosight-client/.env.*.local
+prosight-server/node_modules/
+prosight-server/public/
 
 # Environment & secrets
 *.env

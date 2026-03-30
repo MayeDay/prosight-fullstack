@@ -2,8 +2,8 @@
 // Central API client. All backend calls go through here.
 // Automatically attaches the JWT token from localStorage.
 
-// In production .NET serves React, so /api is relative to the same host.
-// In development the CRA proxy (package.json "proxy") forwards /api → localhost:5000.
+// In production Express serves the React build, so /api is same-origin.
+// In development the CRA proxy (package.json "proxy") forwards /api → localhost:8080.
 const BASE_URL = "/api";
 
 async function request(path, options = {}) {

@@ -38,6 +38,7 @@ router.post('/', auth, async (req, res) => {
     const project = await prisma.project.findUnique({ where: { id: projectId } });
     if (!project) return res.status(404).json({ message: 'Not found' });
     if (project.ownerId !== uid) return res.status(403).json({ message: 'Forbidden' });
+    if (project.status !== 'completed') return res.status(400).json({ message: 'Project must be completed before leaving a review.' });
     if (!project.proId) return res.status(400).json({ message: 'No pro assigned to this project.' });
 
     const alreadyReviewed = await prisma.review.findFirst({ where: { projectId, reviewerId: uid } });
