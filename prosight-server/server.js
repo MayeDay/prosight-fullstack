@@ -1,3 +1,6 @@
+console.log('Starting ProSight server...');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('DATABASE_URL set:', !!process.env.DATABASE_URL);
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
