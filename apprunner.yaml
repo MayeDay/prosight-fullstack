@@ -8,7 +8,7 @@ build:
       - "cd prosight-server && npm install && node_modules/.bin/prisma generate && node_modules/.bin/prisma db push --accept-data-loss"
   env:
     - name: DATABASE_URL
-      value: "postgresql://neondb_owner:npg_hf5WRqDona1S@ep-empty-feather-ams6t7mu-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require"
+      value: "postgresql://neondb_owner:npg_hf5WRqDona1S@ep-empty-feather-ams6t7mu-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 run:
   runtime-version: "22"
   command: "node prosight-server/server.js"
@@ -25,4 +25,4 @@ run:
     - name: JWT_AUDIENCE
       value: ProSightClient
     - name: DATABASE_URL
-      value: "postgresql://neondb_owner:npg_hf5WRqDona1S@ep-empty-feather-ams6t7mu-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require"
+      value: "postgresql://neondb_owner:npg_hf5WRqDona1S@ep-empty-feather-ams6t7mu-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
