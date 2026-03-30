@@ -1,10 +1,10 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  binaryTargets = ["native", "linux-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "sqlserver"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -44,7 +44,7 @@ model Project {
   id                    Int      @id @default(autoincrement())
   title                 String
   category              String
-  description           String   @db.Text
+  description           String
   budget                Decimal  @db.Decimal(10, 2)
   status                String   @default("open")
   ownerApprovedComplete Boolean  @default(false)
@@ -53,8 +53,8 @@ model Project {
   ownerId               Int
   proId                 Int?
 
-  owner        User          @relation("Owner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  pro          User?         @relation("Pro", fields: [proId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  owner        User          @relation("Owner", fields: [ownerId], references: [id], onDelete: Restrict)
+  pro          User?         @relation("Pro", fields: [proId], references: [id], onDelete: SetNull)
   messages     Message[]
   applications Application[]
   reviews      Review[]
@@ -62,13 +62,13 @@ model Project {
 
 model Message {
   id        Int      @id @default(autoincrement())
-  text      String   @db.Text
+  text      String
   sentAt    DateTime @default(now())
   projectId Int
   senderId  Int
 
   project Project @relation(fields: [projectId], references: [id])
-  sender  User    @relation(fields: [senderId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sender  User    @relation(fields: [senderId], references: [id], onDelete: Restrict)
 }
 
 model Application {
@@ -79,19 +79,19 @@ model Application {
   proId     Int
 
   project Project @relation(fields: [projectId], references: [id])
-  pro     User    @relation(fields: [proId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  pro     User    @relation(fields: [proId], references: [id], onDelete: Restrict)
 }
 
 model Review {
   id         Int      @id @default(autoincrement())
   rating     Int
-  comment    String   @db.Text
+  comment    String
   createdAt  DateTime @default(now())
   projectId  Int
   reviewerId Int
   revieweeId Int
 
   project  Project @relation(fields: [projectId], references: [id])
-  reviewer User    @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  reviewee User    @relation("Reviewee", fields: [revieweeId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  reviewer User    @relation("Reviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+  reviewee User    @relation("Reviewee", fields: [revieweeId], references: [id], onDelete: Restrict)
 }

@@ -20,4 +20,4 @@ run:
     - name: JWT_AUDIENCE
       value: ProSightClient
     - name: DATABASE_URL
-      value: sqlserver://YOUR_RDS_ENDPOINT:1433;database=ProSightDb;user=sa;password=YOUR_PASSWORD;trustServerCertificate=true
+      value: postgresql://neondb_owner:npg_hf5WRqDona1S@ep-empty-feather-ams6t7mu-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
