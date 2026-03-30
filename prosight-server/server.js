@@ -30,9 +30,18 @@ if (fs.existsSync(publicDir)) {
 }
 
 // Start listening immediately so App Runner health check passes,
-// then seed the database in the background.
+// then push schema + seed in the background.
 app.listen(PORT, () => {
   console.log(`ProSight API running on port ${PORT}`);
-  const { seed } = require('./seed');
-  seed(prisma).catch(err => console.error('Seed skipped:', err.message));
+
+  const { exec } = require('child_process');
+  exec('node_modules/.bin/prisma db push --accept-data-loss', { cwd: __dirname }, (err) => {
+    if (err) {
+      console.error('DB push failed:', err.message);
+      return;
+    }
+    console.log('DB schema synced');
+    const { seed } = require('./seed');
+    seed(prisma).catch(e => console.error('Seed skipped:', e.message));
+  });
 });
