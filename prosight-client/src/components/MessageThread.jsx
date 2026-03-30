@@ -1,4 +1,5 @@
 // src/components/MessageThread.jsx
+import { useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
 import { useMessages } from "../hooks/useMessages";
 import StatusBadge from "./StatusBadge";
@@ -7,6 +8,12 @@ export default function MessageThread({ project }) {
   const { currentUser } = useApp();
   const { messages, input, setInput, send, handleKeyDown, loading } =
     useMessages(project?.id);
+  const bottomRef = useRef(null);
+
+  // Auto-scroll to bottom when messages update
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   if (!project) {
     return (
@@ -128,6 +135,7 @@ export default function MessageThread({ project }) {
             </div>
           );
         })}
+        <div ref={bottomRef} />
       </div>
 
       {/* Input */}
